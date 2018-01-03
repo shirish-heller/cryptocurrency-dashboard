@@ -1,0 +1,17 @@
+<link rel="import" href="./bower_components/polymer/polymer-element.html"/>
+
+<dom-module id="crypto-dash">
+    <template>
+        <h2>Hi I am crypto</h2>
+    </template>
+
+    <script>
+        class CryptoDash extends Polymer.Element {
+            static get is() {
+                return 'crypto-dash';
+            }
+        }
+        window.customElements.define(CryptoDash.is, CryptoDash);
+    </script>
+    
+</dom-module>
