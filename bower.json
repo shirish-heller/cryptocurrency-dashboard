@@ -1,0 +1,21 @@
+{
+  "name": "crypto-dash",
+  "authors": [
+    "shirish-heller <shivansh.rajolia28@gmail.com>"
+  ],
+  "description": "cryptocurrency dashboard",
+  "main": "",
+  "keywords": [
+    "crypto'"
+  ],
+  "license": "MIT",
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
