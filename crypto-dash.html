@@ -1,14 +1,62 @@
 <link rel="import" href="./bower_components/polymer/polymer-element.html"/>
+<link rel="import" href="./bower_components/iron-ajax/iron-ajax.html"/>
 
 <dom-module id="crypto-dash">
     <template>
         <h2>Hi I am crypto</h2>
+        <iron-ajax
+            id="coinbase"
+            handle-as="json"
+            on-response="_handleCryptoData">
+        </iron-ajax>
+        <p>{{currencies}}</p>
     </template>
 
     <script>
         class CryptoDash extends Polymer.Element {
             static get is() {
                 return 'crypto-dash';
+            }
+            static get properties() {
+                return {
+                    currencies: {
+                        type: String,
+                        notify: true,
+                        reflectToAttribute: true
+                    }
+                }
+            }
+
+            ready() {
+                super.ready();
+                Polymer.RenderStatus.afterNextRender(this, ()=> {
+                   this._getCurrencyData();
+                   });
+            }
+            _getCurrencyData() {
+                var ajax= this.$.coinbase;
+                //    currencies.forEach( (element, key)=> {
+                //     ajax.url = "https://api.coinbase.com/v2/prices/" + element.code + '-USD/spot';
+                //     ajax.generateRequest();
+                //    }, this); 
+                ajax.url = "https://api.coinbase.com/v2/prices/USD/spot";
+                ajax.generateRequest();
+
+            }
+            _handleCryptoData(response) {
+                var responseArray = response.detail.__data.response.data;
+                var btc = responseArray[0];
+                var eth = responseArray[2];
+                var ltc = responseArray[3];
+                // this.currencies.push(btc);
+                // this.currencies.push(eth);
+                // this.currencies.push(ltc);
+                // this.push('currencies', btc.amount);
+                // this.push('currencies', eth.amount);
+                // this.push('currencies', ltc.amount);
+                this.currencies = btc.amount;
+
+
             }
         }
         window.customElements.define(CryptoDash.is, CryptoDash);

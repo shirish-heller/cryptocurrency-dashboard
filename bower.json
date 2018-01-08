@@ -17,5 +17,8 @@
     "bower_components",
     "test",
     "tests"
-  ]
+  ],
+  "dependencies": {
+    "iron-ajax": "PolymerElements/iron-ajax#^2.0.6"
+  }
 }
