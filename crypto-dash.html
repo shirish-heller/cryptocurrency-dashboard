@@ -1,15 +1,57 @@
 <link rel="import" href="./bower_components/polymer/polymer-element.html"/>
 <link rel="import" href="./bower_components/iron-ajax/iron-ajax.html"/>
+<link rel="import" href="./bower_components/paper-spinner/paper-spinner-lite.html"/>
+<link rel="import" href="./bower_components/paper-button/paper-button.html"/>
+<link rel="import" href="./bower_components/paper-toolbar/paper-toolbar.html"/>
+
+<!-- Since chart,js is a JS lib we use script -->
+<script src="bower_components/chart.js/dist/Chart.js"></script>
+<script src="bower_components/moment/moment.js"></script>
 
 <dom-module id="crypto-dash">
+
     <template>
-        <h2>Hi I am crypto</h2>
+            <style is="custom-style">
+                    paper-button.custom:hover {
+                       background-color: var(--paper-indigo-200);
+                   }
+                       paper-button.indigo {
+                           background-color: var(--paper-indigo-500);
+                           color: white;
+                           margin: 5px;
+
+             }
+             paper-toolbar.red {
+    --paper-toolbar-background: #F28500;
+    --paper-toolbar-title: {
+        font-family: Tahoma, Verdana, Segoe, sans-serif;
+        margin-left: 40%;
+      font-weight: bold;
+    };
+  }
+               </style>
+        <paper-toolbar class="red">
+                <span slot="bottom" class="title">Crypto Currency Dashboard</span>
+        </paper-toolbar>
         <iron-ajax
             id="coinbase"
             handle-as="json"
-            on-response="_handleCryptoData">
+            on-response="_handleCryptoData" loading="{{loading}}">
         </iron-ajax>
-        <p>{{currencies}}</p>
+        <paper-spinner-lite active="{{loading}}"></paper-spinner-lite>
+        <div hidden="[[loading]]"></div>
+    <div>
+         <paper-button on-click="_getHistoricData" class="custom indigo">BTC :-$ {{currencies.btc.amount}} </paper-button>
+         <paper-button on-click="_getHistoricData" class="custom indigo">ETH :-$ {{currencies.eth.amount}} </paper-button>
+         <paper-button on-click="_getHistoricData" class="custom indigo">LTC :-$ {{currencies.ltc.amount}} </paper-button>
+     </div>
+<hr>
+     <h2 id="titleContent" style="width: 100%; margin-left: 45%; font-family: Tahoma, Verdana, Segoe, sans-serif;"> </h2>
+    <hr>
+        <div id="idcontent" class="chart-container" hidden$="[[loading]]" style="position: relative; width: 100%; max-width: 700px; margin: 0 auto;">
+            <canvas height="2" width="4" id="id-canvas"></canvas>
+        </div>
+
     </template>
 
     <script>
@@ -20,19 +62,54 @@
             static get properties() {
                 return {
                     currencies: {
-                        type: String,
+                        type: Object,
                         notify: true,
-                        reflectToAttribute: true
-                    }
+                        reflectToAttribute: true,
+                        value: {
+                            "name": "currencies",
+                            "btc": {
+                                code: "BTC"
+                            },
+                            "eth": {
+                                code: "ETH"
+                            },
+                            "eth": {
+                                code: "LTC"
+                            }
+                        }
+                    },
+                    btc: String,
+                    ltc: String,
+                    eth: String,
+                    loading: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    },
+                    lineChart: {}
+
                 }
             }
 
             ready() {
                 super.ready();
                 Polymer.RenderStatus.afterNextRender(this, ()=> {
+                //    let myFirstPromise = new Promise((resolve, reject)=> {
+                //        var x=12;
+                //     this._getCurrencyData(resolve);
+                //    });
+
+                //    myFirstPromise.then( (successMessage)=> {
+                //         console.log("YAYYYY", successMessage);
+                //         this._getHistoricData(this.currencies.btc.currency);
+                //     });
                    this._getCurrencyData();
+                //    this._getHistoricData(this.currencies.btc.code);
                    });
+
             }
+            
+
             _getCurrencyData() {
                 var ajax= this.$.coinbase;
                 //    currencies.forEach( (element, key)=> {
@@ -40,22 +117,109 @@
                 //     ajax.generateRequest();
                 //    }, this); 
                 ajax.url = "https://api.coinbase.com/v2/prices/USD/spot";
-                ajax.generateRequest();
+                let request = ajax.generateRequest();
+                request.completes.then((req)=> {
+                    this._getHistoricData(this.currencies.btc.base);
+                }, (rejected)=> {
+                    console.log("Polymer Promise is rejected", rejected.error);
+                })
 
             }
-            _handleCryptoData(response) {
-                var responseArray = response.detail.__data.response.data;
-                var btc = responseArray[0];
-                var eth = responseArray[2];
-                var ltc = responseArray[3];
-                // this.currencies.push(btc);
-                // this.currencies.push(eth);
-                // this.currencies.push(ltc);
-                // this.push('currencies', btc.amount);
-                // this.push('currencies', eth.amount);
-                // this.push('currencies', ltc.amount);
-                this.currencies = btc.amount;
+            _getHistoricData (code) {
+                this.$.titleContent.innerHTML = "BITCOIN";
+                if(event.target.nodeName =="PAPER-BUTTON"){
+                    code = event.target.innerHTML.substring(0,3).toLowerCase();
+                    if(code == "ltc") {
+                        this.$.titleContent.innerHTML = "LITECOIN";
+                    }
+                    if(code == "eth") {
+                        this.$.titleContent.innerHTML = "ETHEREUM";
+                    }
+                }
+                var ajax = this.$.coinbase;
+                ajax.url = "https://api.coinbase.com/v2/prices/"+code+"-USD/historic?period=week";
+                ajax.generateRequest();
+            }
 
+            _handleCryptoData(response) {
+                if(response.detail.__data.response.data[0]!== undefined) {
+                    console.log("This is spot");
+                    var responseArray = response.detail.__data.response.data;
+                    this.set('currencies.btc', responseArray[0]);
+                    this.set('currencies.eth', responseArray[2]);
+                    this.set('currencies.ltc', responseArray[3]);
+
+                } else {
+                    console.log("This is history");
+                    this._computeGraph(response.detail);
+                }
+            }
+
+            _computeDateTime(dateString) {
+                if(dateString) {
+                    return moment(dateString, "YYYY-MM-DDThh:mm:aaZ").format('M/DD/YYYY hh:mm a')
+                }
+                return dateString;
+            }
+
+            _computeGraph(data) {
+                let url = data.url.substring(35,38);
+                let price = [];
+                let label = [];
+                data.__data.response.data.prices.forEach(element => {
+                    price.push(element.price);
+                    label.push(this._computeDateTime(element.time));
+                });
+                this._generateLineChart(label, price, url);
+            }
+
+            _generateLineChart(label, price, url) {
+                if(this.myLineChart != undefined) {
+                    this.myLineChart.destroy();
+                }
+                var ctx = this.$['id-canvas'].getContext('2d');
+                this.myLineChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: label,
+                        datasets: [
+                            {
+                                pointRadius: 0,
+                                label: url,
+                                backgroundColor: "rgba(97, 153, 244, 0.8)",
+                                borderColor: "#000",
+                                borderWidth: 3,
+                                data: price
+
+                            }
+                        ]
+                    },
+                    options: {
+                        animation: {
+                             duration: 1, // general animation time
+                                },
+                                hover: {
+                                    animationDuration: 1, // duration of animations when hovering an item
+                                },
+                                responsiveAnimationDuration: 1, // animation duration after a resize
+                        tooltips: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        scales: {
+                            xAxes: [{
+                                gridLines: {
+                                    display: true
+                                }
+                            }],
+                            yAxes: [{
+                                gridLines: {
+                                    display: true
+                                }
+                            }]
+                        }
+                    }
+                })
 
             }
         }
