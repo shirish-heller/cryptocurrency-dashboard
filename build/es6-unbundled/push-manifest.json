@@ -260,6 +260,10 @@
       "type": "document",
       "weight": 1
     },
+    "bower_components/paper-styles/paper-styles.html": {
+      "type": "document",
+      "weight": 1
+    },
     "bower_components/chart.js/dist/Chart.js": {
       "type": "script",
       "weight": 1

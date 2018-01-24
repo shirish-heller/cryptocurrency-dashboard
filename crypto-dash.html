@@ -3,6 +3,10 @@
 <link rel="import" href="./bower_components/paper-spinner/paper-spinner-lite.html"/>
 <link rel="import" href="./bower_components/paper-button/paper-button.html"/>
 <link rel="import" href="./bower_components/paper-toolbar/paper-toolbar.html"/>
+<link rel="import" href="./bower_components/paper-styles/paper-styles.html"/>
+<link rel="import" href="./bower_components/iron-flex-layout/iron-flex-layout.html"/>
+
+<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
 
 <!-- Since chart,js is a JS lib we use script -->
 <script src="bower_components/chart.js/dist/Chart.js"></script>
@@ -12,6 +16,13 @@
 
     <template>
             <style is="custom-style">
+
+                :host {
+                    display: block;
+                    font-family: 'Roboto';
+                }
+
+                --paper-cryptocurrency-primary-text-color: #0667D0;
                     paper-button.custom:hover {
                        background-color: var(--paper-indigo-200);
                    }
@@ -21,15 +32,35 @@
                            margin: 5px;
 
              }
-             paper-toolbar.red {
-    --paper-toolbar-background: #F28500;
-    --paper-toolbar-title: {
-        font-family: Tahoma, Verdana, Segoe, sans-serif;
-        margin-left: 40%;
-      font-weight: bold;
-    };
-  }
+                        paper-toolbar.red {
+                        --paper-toolbar-background: #F28500;
+                        --paper-toolbar-title: {
+                            @apply --layout-horizontal;
+                            @apply --layout-center-center;
+                        font-weight: bold;
+                         };
+                    }
+
+                    paper-spinner-lite {
+                    /*@apply --layout-fit;*/
+                    display: none;
+                    margin: auto;
+                    z-index: 2;
+                    height: 60px;
+                    width: 60px;
+                    --paper-spinner-color: var(--paper-cryptocurrency-spinner-color, #2196F3);
+                    --paper-spinner-stroke-width: var(--paper-cryptocurrency-spinner-width, 5px);
+                    @apply --paper-cryptocurrency-spinner;
+                }
+            paper-spinner-lite[active] {
+                display: block;
+            }
+                #titleContent {
+                    @apply --layout-horizontal;
+                    @apply --layout-center-center;
+                }
                </style>
+
         <paper-toolbar class="red">
                 <span slot="bottom" class="title">Crypto Currency Dashboard</span>
         </paper-toolbar>
@@ -46,7 +77,7 @@
          <paper-button on-click="_getHistoricData" class="custom indigo">LTC :-$ {{currencies.ltc.amount}} </paper-button>
      </div>
 <hr>
-     <h2 id="titleContent" style="width: 100%; margin-left: 45%; font-family: Tahoma, Verdana, Segoe, sans-serif;"> </h2>
+     <h2 id="titleContent"> </h2>
     <hr>
         <div id="idcontent" class="chart-container" hidden$="[[loading]]" style="position: relative; width: 100%; max-width: 700px; margin: 0 auto;">
             <canvas height="2" width="4" id="id-canvas"></canvas>
