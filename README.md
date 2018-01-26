@@ -1,6 +1,6 @@
-# Live Hosted Site
+# What is it ?
 
-https://cryptoashboard.firebaseapp.com/
+BitCoin, LiteCoin, Etherium ... Live prices and history data based live performance chart
 
 # cryptocurrency-dashboard
 cryptocurrency dashboard
